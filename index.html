@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Prochains métros</title>
+  <meta name="description" content="Les deux prochains métros à Volontaires (ligne 12) ou à la station de votre choix.">
+  <meta name="theme-color" content="#0b1b3d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Métro">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="board" aria-live="polite">
+    <header class="band">
+      <span id="pastille" class="pastille" style="--c:#00643C;--t:#FFFFFF">12</span>
+      <div class="where">
+        <h1 id="station">Volontaires</h1>
+        <p id="direction" class="direction">Mairie d'Issy</p>
+      </div>
+      <button id="open-picker" class="icon-btn" type="button" aria-label="Changer de station">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+      </button>
+    </header>
+
+    <section class="times">
+      <div class="row first">
+        <span class="label">Prochain</span>
+        <span class="min" id="t1">…</span>
+        <span class="dest" id="d1"></span>
+      </div>
+      <div class="row second">
+        <span class="label">Suivant</span>
+        <span class="min" id="t2"></span>
+        <span class="dest" id="d2"></span>
+      </div>
+    </section>
+
+    <p id="notice" class="notice" hidden></p>
+    <button id="alert" class="alert" type="button" hidden></button>
+
+    <footer class="foot">
+      <span id="updated">Chargement…</span>
+      <button id="back-default" class="chip" type="button" hidden>↩ Station par défaut</button>
+    </footer>
+  </main>
+
+  <dialog id="picker" aria-label="Choisir une station">
+    <form method="dialog" class="picker-head">
+      <input id="search" type="search" placeholder="Nom de la station" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button class="close" value="close" aria-label="Fermer">✕</button>
+    </form>
+    <div id="step" class="step"></div>
+    <label class="remember"><input id="remember" type="checkbox"> Mémoriser comme station par défaut</label>
+    <button id="factory" class="link" type="button">Revenir au réglage d'origine (Volontaires → Mairie d'Issy)</button>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

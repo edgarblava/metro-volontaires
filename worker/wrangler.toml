@@ -1,0 +1,9 @@
+name = "metro-volontaires"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://edgarblava.github.io,http://localhost:8000,http://127.0.0.1:8000"
+
+# La clé PRIM est un secret, à ajouter avec : npx wrangler secret put PRIM_API_KEY
+# (ou dans le tableau de bord Cloudflare : Settings > Variables and Secrets > Secret).
