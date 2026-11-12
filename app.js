@@ -166,7 +166,7 @@
       small.textContent = "min";
       node.append(small);
     }
-    if (v.dest && norm(v.dest) !== norm(sel.label)) destNode.textContent = v.dest;
+    if (v.dest && !norm(v.dest).startsWith(norm(sel.label))) destNode.textContent = v.dest;
   }
 
   function render() {

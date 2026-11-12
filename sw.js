@@ -1,8 +1,8 @@
 // Service worker : l'appli s'ouvre même hors connexion (les horaires, eux,
 // viennent toujours du réseau). Réseau d'abord, cache en secours.
-const CACHE = "metro-v2";
+const CACHE = "metro-v3";
 const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "stations.json",
-  "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
+  "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

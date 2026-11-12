@@ -1,6 +1,6 @@
 # Prochains métros
 
-Petite appli web (installable sur l'écran d'accueil de l'iPhone) qui affiche en très gros les deux prochains métros.
+Petite appli web (installable sur l'écran d'accueil d'un téléphone Android ou d'un iPhone) qui affiche en très gros les deux prochains métros.
 Par défaut : **Volontaires (ligne 12), direction Mairie d'Issy**. La loupe en haut à droite permet de choisir n'importe quelle station de métro, puis la ligne et la direction ; cocher « Mémoriser comme station par défaut » pour changer le défaut.
 
 Appli : https://edgarblava.github.io/metro-volontaires/
@@ -16,37 +16,34 @@ Les horaires viennent de l'API officielle **PRIM** d'Île-de-France Mobilités. 
 3. Si la page des API « Prochains passages (requête unitaire) » ou « Messages Info Trafic (requête unitaire) » propose un bouton **S'abonner**, cliquer dessus.
 4. Copier la clé : elle servira à l'étape 2. Ne la mettre nulle part ailleurs.
 
-## 2. Déployer le relais Cloudflare (une fois, sans rien installer)
+## 2. Déployer le relais Cloudflare (une fois)
 
-1. Créer un compte gratuit sur https://dash.cloudflare.com/sign-up et valider l'e-mail.
-2. Dans le tableau de bord : **Workers & Pages** → **Create** → **Start with Hello World!** → nom : `metro-volontaires` → **Deploy**.
-3. Cliquer sur **Edit code**, tout effacer, coller le contenu du fichier [`worker/worker.js`](worker/worker.js) → **Deploy**.
-4. Revenir sur le Worker → **Settings** → **Variables and Secrets** → **Add** :
-   - Type : **Secret**
-   - Name : `PRIM_API_KEY`
-   - Value : la clé PRIM de l'étape 1
-   - → **Deploy**
-5. Ouvrir l'adresse du Worker suivie de `/health`, par exemple `https://metro-volontaires.VOTRE-NOM.workers.dev/health`. La page doit afficher `{"ok":true,"key":true}`.
-6. Mettre cette adresse (sans `/health`) dans [`config.js`](config.js), champ `workerUrl` (déjà fait : `https://metro-volontaires.edgar-272.workers.dev`).
+Le relais tourne sur un compte Cloudflare gratuit : `https://metro-volontaires.edgar-272.workers.dev` (déjà déployé, déjà renseigné dans [`config.js`](config.js)).
 
-<details>
-<summary>Variante en ligne de commande (wrangler, nécessite Node.js)</summary>
-
-Dans le terminal du Mac, depuis le dossier `worker` du dépôt :
+Pour le redéployer après une modification de `worker/worker.js`, taper dans le terminal du Mac, depuis le dossier `worker` du dépôt (Node.js requis : `brew install node`) :
 
 ```bash
-npx wrangler deploy
+npx wrangler@4 deploy
 ```
 
-puis (la clé est demandée, elle n'apparaît pas à l'écran) :
+Pour changer la clé PRIM (elle est demandée, puis masquée à l'écran) :
 
 ```bash
-npx wrangler secret put PRIM_API_KEY
+npx wrangler@4 secret put PRIM_API_KEY
 ```
-</details>
 
-## 3. Ajouter l'appli à l'écran d'accueil de l'iPhone
+La première fois, `npx wrangler@4 login` ouvre le navigateur pour autoriser l'accès au compte Cloudflare.
 
+Vérification : https://metro-volontaires.edgar-272.workers.dev/health doit afficher `{"ok":true,"key":true}`.
+
+## 3. Ajouter l'appli à l'écran d'accueil du téléphone
+
+**Android (Chrome)**
+1. Ouvrir https://edgarblava.github.io/metro-volontaires/ dans **Chrome**.
+2. Toucher le menu **⋮** en haut à droite.
+3. Choisir **Installer l'application** (ou **Ajouter à l'écran d'accueil**), puis **Installer**.
+
+**iPhone (Safari)**
 1. Ouvrir https://edgarblava.github.io/metro-volontaires/ dans **Safari**.
 2. Toucher le bouton **Partager** (carré avec une flèche vers le haut).
 3. Choisir **Sur l'écran d'accueil**, puis **Ajouter**.
