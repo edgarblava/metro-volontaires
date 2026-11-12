@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  // Réglage d'origine : Volontaires (ligne 12), direction Mairie d'Issy.
+  // Station affichée tant que personne n'en a choisi : Volontaires (ligne 12), direction Mairie d'Issy.
   const FACTORY = {
     n: "Volontaires",
     line: "C01382",
@@ -13,10 +13,10 @@
     zdc: ["71113"],
     d: "0",
   };
-  const KEY_DEFAULT = "metro.default.v1";
+  const KEY_LAST = "metro.last.v1";        // dernière station consultée
+  const KEY_OLD_DEFAULT = "metro.default.v1"; // ancienne « station par défaut », reprise une fois
   const REFRESH_MS = 30_000;
   const ALERT_REFRESH_MS = 120_000;
-  const BACK_TO_DEFAULT_MS = 15 * 60_000; // après 15 min en arrière-plan, on revient à la station par défaut
 
   const params = new URLSearchParams(location.search);
   const WORKER = (params.get("worker") || (window.METRO_CONFIG || {}).workerUrl || "").replace(/\/+$/, "");
@@ -26,8 +26,7 @@
     pastille: $("pastille"), station: $("station"), direction: $("direction"),
     t1: $("t1"), d1: $("d1"), t2: $("t2"), d2: $("d2"),
     notice: $("notice"), alert: $("alert"), updated: $("updated"), foot: document.querySelector(".foot"),
-    backDefault: $("back-default"), picker: $("picker"), search: $("search"), step: $("step"),
-    remember: $("remember"), factory: $("factory"), open: $("open-picker"),
+    picker: $("picker"), search: $("search"), step: $("step"), open: $("open-picker"),
   };
 
   // ---------- Utilitaires ----------
@@ -48,8 +47,9 @@
   const same = (a, b) => a.n === b.n && a.line === b.line && a.label === b.label;
 
   // ---------- État ----------
-  let def = isSel(load(KEY_DEFAULT)) ? load(KEY_DEFAULT) : FACTORY;
-  let current = def;
+  const saved = [load(KEY_LAST), load(KEY_OLD_DEFAULT)].find(isSel) || null;
+  const firstVisit = !saved;
+  let current = saved || FACTORY;
   let visits = null;      // [{t, dest, atStop}] ou null si jamais chargé
   let lastOk = null;      // Date de la dernière réponse correcte
   let error = null;       // message d'erreur de la dernière tentative
@@ -251,7 +251,6 @@
     el.station.textContent = sel.n;
     el.direction.textContent = sel.label;
     document.title = `${sel.ln.name} · ${sel.n}`;
-    el.backDefault.hidden = same(sel, def);
 
     const upcoming = (visits || []).filter((v) => v.t > Date.now() - 30_000);
     if (visits) {
@@ -330,8 +329,7 @@
       hiddenAt = Date.now();
       clearInterval(pollTimer);
     } else {
-      if (hiddenAt && Date.now() - hiddenAt > BACK_TO_DEFAULT_MS && !same(current, def)) show(def);
-      else restartPolling();
+      restartPolling();
     }
   });
   window.addEventListener("online", refresh);
@@ -357,7 +355,6 @@
     body.scrollTop = 0;
     $("alert-full").showModal();
   });
-  el.backDefault.addEventListener("click", () => show(def));
 
   // ---------- Choix de la station ----------
   let catalog = null;
@@ -368,6 +365,7 @@
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     catalog = await r.json();
     catalog.stations.forEach((s) => { s.key = norm(`${s.n} ${s.t}`); });
+    catalog.stations.sort((a, b) => a.n.localeCompare(b.n, "fr"));
     return catalog;
   }
 
@@ -428,17 +426,13 @@
   }
 
   function choose(sel) {
-    if (el.remember.checked) {
-      def = sel;
-      same(sel, FACTORY) ? store(KEY_DEFAULT, null) : store(KEY_DEFAULT, sel);
-    }
+    store(KEY_LAST, sel); // rouvrira sur cette station la prochaine fois
     el.picker.close();
     show(sel);
   }
 
-  el.open.addEventListener("click", async () => {
+  async function openPicker() {
     el.search.value = "";
-    el.remember.checked = false;
     el.step.replaceChildren(text("p", "Chargement de la liste des stations…", "hint"));
     el.picker.showModal();
     try {
@@ -447,14 +441,9 @@
     } catch {
       el.step.replaceChildren(text("p", "Impossible de charger la liste des stations.", "hint"));
     }
-  });
+  }
+  el.open.addEventListener("click", openPicker);
   el.search.addEventListener("input", listStations);
-  el.factory.addEventListener("click", () => {
-    def = FACTORY;
-    store(KEY_DEFAULT, null);
-    el.picker.close();
-    show(FACTORY);
-  });
 
   // ---------- Installation sur l'écran d'accueil ----------
   const installBtn = $("install");
@@ -516,6 +505,7 @@
   // ---------- Démarrage ----------
   render();
   restartPolling();
+  if (firstVisit) openPicker(); // première ouverture : chacun choisit sa station
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});

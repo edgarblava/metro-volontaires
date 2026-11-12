@@ -1,7 +1,9 @@
 # Prochains métros
 
 Petite appli web (installable sur l'écran d'accueil d'un téléphone Android ou d'un iPhone) qui affiche en très gros les deux prochains métros.
-Par défaut : **Volontaires (ligne 12), direction Mairie d'Issy**. La loupe en haut à droite permet de choisir n'importe quelle station de métro, puis la ligne et la direction ; cocher « Mémoriser comme station par défaut » pour changer le défaut.
+À la première ouverture, l'appli demande la station (recherche par nom), puis la ligne et la direction. Ensuite, elle rouvre toujours sur **la dernière station consultée**. La loupe en haut à droite permet d'en changer à tout moment. Rien n'est envoyé nulle part : le choix reste sur le téléphone.
+
+À partager librement : chacun installe l'appli depuis le lien ci-dessous et choisit sa station.
 
 Appli : https://edgarblava.github.io/metro-volontaires/
 
@@ -52,7 +54,7 @@ Le plus simple : ouvrir https://edgarblava.github.io/metro-volontaires/ sur le t
 2. Toucher le bouton **Partager** (carré avec une flèche vers le haut).
 3. Choisir **Sur l'écran d'accueil**, puis **Ajouter**.
 
-L'icône « 12 » ouvre directement Volontaires → Mairie d'Issy. Les temps se mettent à jour toutes les 30 secondes et à chaque retour dans l'appli ; toucher les temps force une mise à jour. Après 15 minutes en arrière-plan, l'appli revient d'elle-même à la station par défaut.
+L'icône ouvre directement l'appli sur la dernière station consultée. Les temps se mettent à jour toutes les 30 secondes et à chaque retour dans l'appli ; toucher les temps force une mise à jour.
 
 ---
 
@@ -67,7 +69,7 @@ L'icône « 12 » ouvre directement Volontaires → Mairie d'Issy. Les temps se 
 | `worker/worker.js` | Le relais : ajoute la clé, n'accepte que cette appli (CORS), garde les réponses 15 s |
 | `tools/build_stations.py` | Régénère `stations.json` |
 
-L'appli interroge `stop-monitoring` sur la zone d'arrêt de la station (ex. `STIF:StopArea:SP:45060:` pour Volontaires), garde la ligne choisie, puis la direction (par le quai, ou à défaut par la destination). Les perturbations viennent de `general-message` pour la ligne.
+L'appli interroge `stop-monitoring` sur la zone d'arrêt de la station (ex. `STIF:StopArea:SP:45060:` pour Volontaires), garde la ligne choisie, puis la direction (par le quai, ou à défaut par la destination). Les perturbations viennent de `disruptions_bulk` (filtrées par ligne dans le relais) : seules celles en cours, qui gênent le trafic et touchent le trajet (station, toute la ligne, ou tronçon plus loin dans le sens choisi) sont affichées.
 
 **Mettre à jour la liste des stations** (nouvelle station ou prolongement) : télécharger le GTFS d'IDFM (https://eu.ftp.opendatasoft.com/stif/GTFS/IDFM-gtfs.zip) et l'export du jeu « arrets » (adresse en tête de `tools/build_stations.py`), puis :
 

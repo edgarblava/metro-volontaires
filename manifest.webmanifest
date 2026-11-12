@@ -1,7 +1,7 @@
 {
   "name": "Prochains métros",
   "short_name": "Métro",
-  "description": "Les deux prochains métros à Volontaires (ligne 12) ou à la station de votre choix.",
+  "description": "Les deux prochains métros de votre station, en très gros.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

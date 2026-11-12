@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Prochains métros</title>
-  <meta name="description" content="Les deux prochains métros à Volontaires (ligne 12) ou à la station de votre choix.">
+  <meta name="description" content="Les deux prochains métros de votre station, en très gros.">
   <meta name="theme-color" content="#0b1b3d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -56,7 +56,6 @@
 
     <footer class="foot">
       <span id="updated">Chargement…</span>
-      <button id="back-default" class="chip" type="button" hidden>↩ Station par défaut</button>
     </footer>
   </main>
 
@@ -66,8 +65,7 @@
       <button class="close" value="close" aria-label="Fermer">✕</button>
     </form>
     <div id="step" class="step"></div>
-    <label class="remember"><input id="remember" type="checkbox"> Mémoriser comme station par défaut</label>
-    <button id="factory" class="link" type="button">Revenir au réglage d'origine (Volontaires → Mairie d'Issy)</button>
+    <p class="picker-note">L'appli rouvrira sur la dernière station choisie.</p>
   </dialog>
 
   <dialog id="alert-full" class="full" aria-labelledby="alert-title">
@@ -81,7 +79,7 @@
   <dialog id="install-help" class="sheet" aria-labelledby="install-title">
     <h2 id="install-title">Installer l'appli</h2>
     <ol id="install-steps"></ol>
-    <p class="hint">Ensuite, l'icône « 12 » de l'écran d'accueil ouvre directement l'appli, en plein écran.</p>
+    <p class="hint">Ensuite, l'icône de l'écran d'accueil ouvre directement l'appli, en plein écran, sur votre dernière station.</p>
     <form method="dialog"><button class="ok">J'ai compris</button></form>
   </dialog>
 

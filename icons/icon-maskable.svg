@@ -1,6 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" fill="#0b1b3d"/>
-  <circle cx="256" cy="236" r="104" fill="#00643C"/>
-  <text x="256" y="277" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="118" fill="#ffffff">12</text>
-  <text x="256" y="388" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="700" font-size="58" fill="#ffb300">3 min</text>
+  <g transform="translate(256 262) scale(0.74)">
+    <rect x="-128" y="-170" width="256" height="300" rx="64" fill="#f4f6fb"/>
+    <rect x="-96" y="-132" width="192" height="104" rx="22" fill="#0b1b3d"/>
+    <rect x="-40" y="-158" width="80" height="14" rx="7" fill="#9aa7c4"/>
+    <circle cx="-72" cy="40" r="22" fill="#ffb300"/>
+    <circle cx="72" cy="40" r="22" fill="#ffb300"/>
+    <rect x="-36" y="30" width="72" height="20" rx="10" fill="#9aa7c4"/>
+    <path d="M-84 130 L-114 184 M84 130 L114 184" stroke="#f4f6fb" stroke-width="22" stroke-linecap="round"/>
+    <path d="M-150 196 H150" stroke="#ffb300" stroke-width="14" stroke-linecap="round"/>
+  </g>
 </svg>
