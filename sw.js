@@ -1,6 +1,6 @@
 // Service worker : l'appli s'ouvre même hors connexion (les horaires, eux,
 // viennent toujours du réseau). Réseau d'abord, cache en secours.
-const CACHE = "metro-v4";
+const CACHE = "metro-v5";
 const SHELL = ["./", "index.html", "style.css", "app.js", "config.js", "stations.json",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png"];
 
@@ -18,7 +18,8 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return; // API et polices : pas de cache ici
   e.respondWith(
-    fetch(e.request)
+    // no-cache : revalide auprès du serveur, pour que les mises à jour arrivent tout de suite
+    fetch(url.href, { cache: "no-cache" })
       .then((r) => {
         if (r.ok) {
           const copy = r.clone();
