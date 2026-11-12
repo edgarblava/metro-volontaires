@@ -38,6 +38,10 @@ Vérification : https://metro-volontaires.edgar-272.workers.dev/health doit affi
 
 ## 3. Ajouter l'appli à l'écran d'accueil du téléphone
 
+Le plus simple : ouvrir https://edgarblava.github.io/metro-volontaires/ sur le téléphone et toucher le bouton **Installer l'appli sur le téléphone** en bas de l'écran. Sur Android, il ouvre directement la fenêtre d'installation ; sur iPhone, il affiche les gestes à faire. Le bouton disparaît dans l'appli installée.
+
+À la main :
+
 **Android (Chrome)**
 1. Ouvrir https://edgarblava.github.io/metro-volontaires/ dans **Chrome**.
 2. Toucher le menu **⋮** en haut à droite.

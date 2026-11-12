@@ -363,6 +363,63 @@
     show(FACTORY);
   });
 
+  // ---------- Installation sur l'écran d'accueil ----------
+  const installBtn = $("install");
+  const installHelp = $("install-help");
+  const ua = navigator.userAgent;
+  const isAndroid = /Android/.test(ua);
+  const isIOS = !isAndroid && (/iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+  const installed = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  let installPrompt = null;
+
+  function updateInstallButton() {
+    installBtn.hidden = installed() || !(installPrompt || isIOS || isAndroid);
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); // on garde la fenêtre d'installation pour notre bouton
+    installPrompt = e;
+    updateInstallButton();
+  });
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    installBtn.hidden = true;
+  });
+
+  function step(html) {
+    const li = document.createElement("li");
+    li.innerHTML = html; // textes fixes ci-dessous, aucune donnée externe
+    return li;
+  }
+
+  installBtn.addEventListener("click", async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const choice = await installPrompt.userChoice.catch(() => null);
+      installPrompt = null;
+      if (choice && choice.outcome === "accepted") installBtn.hidden = true;
+      return;
+    }
+    const steps = $("install-steps");
+    steps.replaceChildren();
+    if (isIOS) {
+      steps.append(
+        step("Touchez le bouton <b>Partager</b> (carré avec une flèche ↑), en bas ou en haut de l'écran."),
+        step("Choisissez <b>Sur l'écran d'accueil</b> (faites défiler la liste si besoin)."),
+        step("Touchez <b>Ajouter</b>."),
+      );
+    } else {
+      steps.append(
+        step("Ouvrez le menu <b>⋮</b> du navigateur (en haut à droite dans Chrome)."),
+        step("Choisissez <b>Installer l'application</b> ou <b>Ajouter à l'écran d'accueil</b>."),
+        step("Confirmez avec <b>Installer</b>."),
+      );
+    }
+    installHelp.showModal();
+  });
+
+  updateInstallButton();
+
   // ---------- Démarrage ----------
   render();
   restartPolling();

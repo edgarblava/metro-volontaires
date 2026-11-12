@@ -264,3 +264,46 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
   text-align: left;
   cursor: pointer;
 }
+
+/* Installation */
+.install {
+  margin: 0 16px 10px;
+  padding: 14px 16px;
+  border: 2px solid var(--ambre);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ambre);
+  font: 700 18px var(--font);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.install[hidden] { display: none; }
+.install svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+dialog.sheet {
+  height: fit-content;
+  max-height: 90dvh;
+  width: min(92vw, 480px);
+  margin: auto;
+  padding: 20px 20px 18px;
+  border-radius: 16px;
+  background: var(--nuit);
+}
+dialog.sheet[open] { display: block; }
+.sheet h2 { margin: 0 0 12px; font-size: 24px; }
+.sheet ol { margin: 0 0 12px; padding-left: 22px; font-size: 19px; line-height: 1.45; }
+.sheet li + li { margin-top: 8px; }
+.sheet .hint { color: var(--gris); font-size: 16px; margin: 0 0 16px; }
+.sheet .ok {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ambre);
+  color: #1a1200;
+  font: 700 18px var(--font);
+  cursor: pointer;
+}

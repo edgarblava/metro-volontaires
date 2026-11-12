@@ -46,6 +46,10 @@
 
     <p id="notice" class="notice" hidden></p>
     <button id="alert" class="alert" type="button" hidden></button>
+    <button id="install" class="install" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>
+      Installer l'appli sur le téléphone
+    </button>
 
     <footer class="foot">
       <span id="updated">Chargement…</span>
@@ -61,6 +65,13 @@
     <div id="step" class="step"></div>
     <label class="remember"><input id="remember" type="checkbox"> Mémoriser comme station par défaut</label>
     <button id="factory" class="link" type="button">Revenir au réglage d'origine (Volontaires → Mairie d'Issy)</button>
+  </dialog>
+
+  <dialog id="install-help" class="sheet" aria-labelledby="install-title">
+    <h2 id="install-title">Installer l'appli</h2>
+    <ol id="install-steps"></ol>
+    <p class="hint">Ensuite, l'icône « 12 » de l'écran d'accueil ouvre directement l'appli, en plein écran.</p>
+    <form method="dialog"><button class="ok">J'ai compris</button></form>
   </dialog>
 
   <script src="config.js"></script>
