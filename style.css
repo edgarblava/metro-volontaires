@@ -120,7 +120,11 @@ h1 {
 .min small { font-size: 0.42em; font-weight: 600; margin-left: 0.12em; }
 .first .min { font-size: clamp(96px, 34vw, 190px); }
 .second .min { font-size: clamp(60px, 20vw, 110px); color: #e9c46a; }
-.min.text { font-size: clamp(44px, 14vw, 80px) !important; }
+.min.text {
+  font-size: clamp(40px, 12.5vw, 72px) !important;
+  line-height: 1.15;
+  margin-top: 8px;
+}
 
 .dest {
   min-height: 1.2em;
@@ -185,6 +189,7 @@ h1 {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.full-body em { color: var(--ambre); font-style: normal; font-weight: 600; }
 .full-body p { margin: 0 0 18px; padding: 14px; border-left: 5px solid var(--rouge); border-radius: 10px; background: #2a1a1f; color: #ffe1dc; }
 
 .foot {

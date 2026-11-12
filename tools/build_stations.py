@@ -49,16 +49,41 @@ for t in rows("trips.txt"):
 
 # (quai, ligne, sens) -> Counter(destination)
 agg = collections.defaultdict(collections.Counter)
+trip_stops = collections.defaultdict(list)  # course -> [(rang, quai)]
 for st in rows("stop_times.txt"):
     tr = trips.get(st["trip_id"])
-    if tr is None or st["pickup_type"] == "1":  # pas de montée (terminus)
+    if tr is None:
+        continue
+    trip_stops[st["trip_id"]].append((int(st["stop_sequence"]), short(st["stop_id"])))
+    if st["pickup_type"] == "1":  # pas de montée (terminus)
         continue
     lid, d, head = tr
     agg[(short(st["stop_id"]), lid, d)][head] += 1
 
 names = {}
+parent = {}
 for s in rows("stops.txt"):
     names[short(s["stop_id"])] = s["stop_name"].strip()
+    if s["parent_station"]:
+        parent[short(s["stop_id"])] = short(s["parent_station"])
+
+# Ordre des stations (zones de correspondance, ZdC) par ligne et par sens : la plus
+# longue course de chaque destination. Sert à savoir si une perturbation sur un
+# tronçon se trouve sur le trajet.
+longest = {}
+for tid, stops in trip_stops.items():
+    lid, d, head = trips[tid]
+    key = (lid, d, head)
+    if len(stops) > len(longest.get(key, ())):
+        longest[key] = stops
+for (lid, d, head), stops in longest.items():
+    seq = [parent.get(q, q) for _, q in sorted(stops)]
+    seqs = lines[lid].setdefault("seq", {}).setdefault(d, [])
+    if seq not in seqs and not any(",".join(seq) in ",".join(o) for o in seqs):
+        seqs.append(seq)
+for ln in lines.values():
+    for d, seqs in ln.get("seq", {}).items():
+        ln["seq"][d] = [q for q in seqs if not any(q is not o and ",".join(q) in ",".join(o) for o in seqs)]
 
 with open(arrets_path, encoding="utf-8") as f:
     arrets = {a["arrid"]: a for a in json.load(f)}
@@ -74,8 +99,9 @@ for (quai, lid, d), heads in agg.items():
     name = names.get(quai) or a["arrname"]
     st = stations[name]
     st["towns"][a.get("arrtown") or ""] += 1
-    ln = st["lines"].setdefault(lid, {"zda": set(), "dirs": {}})
+    ln = st["lines"].setdefault(lid, {"zda": set(), "zdc": set(), "dirs": {}})
     ln["zda"].add(a["zdaid"])
+    ln["zdc"].add(parent.get(quai, ""))
     dd = ln["dirs"].setdefault(d, {"quais": set(), "heads": collections.Counter()})
     dd["quais"].add(quai)
     dd["heads"].update(heads)
@@ -109,13 +135,14 @@ for name in sorted(stations, key=lambda s: s.lower()):
             ranked = [h for h, _ in dd["heads"].most_common()]
             main = [h for h in ranked if h not in served[(lid, d)]] or ranked[:1]
             dirs.append({
+                "d": d,
                 "label": " / ".join(main),
                 "quais": sorted(dd["quais"]),
                 "heads": ranked,
             })
         if len(ln["zda"]) > 1:
             print(f"{name} ligne {lines[lid]['name']} : plusieurs ZdA {ln['zda']}", file=sys.stderr)
-        entry["l"].append({"id": lid, "zda": sorted(ln["zda"]), "dirs": dirs})
+        entry["l"].append({"id": lid, "zda": sorted(ln["zda"]), "zdc": sorted(ln["zdc"] - {""}), "dirs": dirs})
     out.append(entry)
 
 json.dump(

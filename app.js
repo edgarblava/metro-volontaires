@@ -10,6 +10,8 @@
     label: "Mairie d'Issy",
     quais: ["462964"],
     heads: ["Mairie d'Issy"],
+    zdc: ["71113"],
+    d: "0",
   };
   const KEY_DEFAULT = "metro.default.v1";
   const REFRESH_MS = 30_000;
@@ -51,7 +53,7 @@
   let visits = null;      // [{t, dest, atStop}] ou null si jamais chargé
   let lastOk = null;      // Date de la dernière réponse correcte
   let error = null;       // message d'erreur de la dernière tentative
-  let alerts = [];        // textes de perturbation pour la ligne
+  let alerts = [];        // perturbations en cours qui touchent le trajet : {title, text, period}
   let alertsFor = null, alertsAt = 0;
   let generation = 0;     // ignore les réponses d'une station précédente
   let hiddenAt = 0;
@@ -121,28 +123,99 @@
     refreshAlerts(sel);
   }
 
+  // Info trafic : on n'affiche une perturbation que si elle est en cours maintenant,
+  // qu'elle gêne vraiment (pas une simple information) et qu'elle touche le trajet :
+  // la station elle-même, toute la ligne, ou un tronçon situé plus loin dans le sens choisi.
+  const alertKey = (sel) => `${sel.n}|${sel.line}|${sel.label}`;
+
+  function parisNow() {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+    return `${p.year}${p.month}${p.day}T${p.hour}${p.minute}${p.second}`;
+  }
+
+  const idOf = (ref) => String(ref || "").split(":").pop();
+
+  function htmlToText(html) {
+    const doc = new DOMParser().parseFromString(
+      String(html || "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n"), "text/html");
+    return (doc.body.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  function frenchPeriod(d) {
+    const p = (d.applicationPeriods || [])[0];
+    if (!p) return "";
+    const fmt = (t) => {
+      const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/.exec(t || "");
+      return m ? `${m[3]}/${m[2]} à ${m[4]} h ${m[5]}` : "";
+    };
+    return p.end ? `Du ${fmt(p.begin)} au ${fmt(p.end)}` : `Depuis le ${fmt(p.begin)}`;
+  }
+
+  // La station du trajet (ZdC) et le sens GTFS, retrouvés dans le référentiel si besoin.
+  function tripInfo(sel, cat) {
+    let { zdc, d } = sel;
+    if (!zdc || d == null) {
+      const st = cat.stations.find((s) => s.n === sel.n);
+      const ln = st && st.l.find((l) => l.id === sel.line);
+      const dir = ln && ln.dirs.find((x) => x.label === sel.label);
+      zdc = ln ? ln.zdc : [];
+      d = dir ? dir.d : null;
+    }
+    return { zdc: new Set(zdc || []), d };
+  }
+
+  function touchesTrip(dis, sel, cat) {
+    const sections = (dis.impactedSections || []).filter((x) => String(x.lineId || "").includes(sel.line));
+    if (!sections.length) return true; // toute la ligne
+    const { zdc, d } = tripInfo(sel, cat);
+    const seqs = ((cat.lines[sel.line] || {}).seq || {})[d] || [];
+    const mine = seqs.filter((q) => q.some((z) => zdc.has(z)));
+    if (!mine.length) return true; // ordre inconnu : on prévient par prudence
+    return sections.some((sec) => mine.some((q) => {
+      const i = q.findIndex((z) => zdc.has(z));
+      const a = q.indexOf(idOf(sec.from && sec.from.id));
+      const b = q.indexOf(idOf(sec.to && sec.to.id));
+      if (a < 0 && b < 0) return false; // autre branche
+      return Math.max(a, b) >= i; // la station est dans le tronçon, ou le tronçon est plus loin
+    }));
+  }
+
   async function refreshAlerts(sel) {
-    if (alertsFor === sel.line && Date.now() - alertsAt < ALERT_REFRESH_MS) return;
-    alertsFor = sel.line;
+    const key = alertKey(sel);
+    if (alertsFor === key && Date.now() - alertsAt < ALERT_REFRESH_MS) return;
+    alertsFor = key;
     alertsAt = Date.now();
     try {
-      const j = await getJSON(`/general-message?LineRef=${encodeURIComponent(`STIF:Line::${sel.line}:`)}`);
-      const now = Date.now();
-      const texts = [];
-      for (const d of (j.Siri && j.Siri.ServiceDelivery && j.Siri.ServiceDelivery.GeneralMessageDelivery) || []) {
-        for (const m of d.InfoMessage || []) {
-          if (!/perturbation/i.test(val(m.InfoChannelRef) || "")) continue;
-          const until = Date.parse(val(m.ValidUntilTime));
-          if (Number.isFinite(until) && until < now) continue;
-          const msgs = (m.Content && m.Content.Message) || [];
-          const pick = msgs.find((x) => /short/i.test(val(x.MessageType) || "")) || msgs[0];
-          const text = pick && val(pick.MessageText);
-          if (text && !texts.includes(text.trim())) texts.push(text.trim());
+      const [j, cat] = await Promise.all([getJSON(`/disruptions?line=${sel.line}`), loadCatalog()]);
+      const now = parisNow();
+      const byId = new Map((j.disruptions || []).map((x) => [x.id, x]));
+      const found = new Map();
+      for (const ln of j.lines || []) {
+        for (const o of ln.impactedObjects || []) {
+          for (const id of o.disruptionIds || []) {
+            const dis = byId.get(id);
+            if (!dis || found.has(id)) continue;
+            if (!/BLOQUANTE|PERTURBEE/i.test(dis.severity || "")) continue;
+            const active = (dis.applicationPeriods || []).some((p) => p.begin <= now && (!p.end || now < p.end));
+            if (!active) continue;
+            const relevant = o.type === "line"
+              ? touchesTrip(dis, sel, cat)
+              : norm(o.name).startsWith(norm(sel.n)) || sel.quais.includes(idOf(o.id)) || tripInfo(sel, cat).zdc.has(idOf(o.id));
+            if (relevant) found.set(id, dis);
+          }
         }
       }
-      if (alertsFor === sel.line) { alerts = texts; render(); }
+      const list = [...found.values()].map((dis) => ({
+        title: (dis.title || dis.shortMessage || "Perturbation").trim(),
+        text: htmlToText(dis.message),
+        period: frenchPeriod(dis),
+      }));
+      if (alertsFor === key) { alerts = list; render(); }
     } catch (e) {
-      alerts = [];
+      if (alertsFor === key) { alerts = []; render(); }
       console.warn("Info trafic :", e);
     }
   }
@@ -216,7 +289,7 @@
 
     el.alert.hidden = alerts.length === 0;
     $("alert-text").textContent = alerts.length
-      ? `⚠ ${alerts[0]}${alerts.length > 1 ? ` (+${alerts.length - 1} autre${alerts.length > 2 ? "s" : ""})` : ""}`
+      ? `⚠ ${alerts[0].title}${alerts.length > 1 ? ` (+${alerts.length - 1} autre${alerts.length > 2 ? "s" : ""})` : ""}`
       : "";
 
     if (lastOk) {
@@ -237,7 +310,7 @@
       visits = null;
       lastOk = null;
       error = null;
-      if (alertsFor !== sel.line) { alerts = []; alertsFor = null; }
+      if (alertsFor !== alertKey(sel)) { alerts = []; alertsFor = null; }
     }
     render();
     restartPolling();
@@ -268,9 +341,17 @@
   el.alert.addEventListener("click", () => {
     $("alert-title").textContent = `Info trafic · ligne ${current.ln.name}`;
     const body = $("alert-body");
-    body.replaceChildren(...alerts.map((t) => {
+    body.replaceChildren(...alerts.map((a) => {
       const p = document.createElement("p");
-      p.textContent = t;
+      const b = document.createElement("strong");
+      b.textContent = a.title;
+      p.append(b, document.createElement("br"));
+      if (a.period) {
+        const i = document.createElement("em");
+        i.textContent = a.period;
+        p.append(i, document.createElement("br"));
+      }
+      p.append(a.text);
       return p;
     }));
     body.scrollTop = 0;
@@ -339,7 +420,7 @@
     for (const l of s.l) {
       const ln = catalog.lines[l.id];
       for (const d of l.dirs) {
-        const sel = { n: s.n, line: l.id, ln, zda: l.zda, label: d.label, quais: d.quais, heads: d.heads };
+        const sel = { n: s.n, line: l.id, ln, zda: l.zda, zdc: l.zdc, d: d.d, label: d.label, quais: d.quais, heads: d.heads };
         el.step.append(item(() => choose(sel), mini(ln), text("span", `→ ${d.label}`)));
       }
     }
