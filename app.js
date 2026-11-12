@@ -215,7 +215,9 @@
     el.notice.classList.toggle("error", isError);
 
     el.alert.hidden = alerts.length === 0;
-    el.alert.textContent = alerts.length ? `⚠ ${alerts.join("\n\n")}` : "";
+    $("alert-text").textContent = alerts.length
+      ? `⚠ ${alerts[0]}${alerts.length > 1 ? ` (+${alerts.length - 1} autre${alerts.length > 2 ? "s" : ""})` : ""}`
+      : "";
 
     if (lastOk) {
       const stale = !!error || Date.now() - lastOk > 2 * REFRESH_MS;
@@ -263,7 +265,17 @@
   window.addEventListener("pageshow", (e) => { if (e.persisted) restartPolling(); });
 
   document.querySelector(".times").addEventListener("click", refresh);
-  el.alert.addEventListener("click", () => el.alert.classList.toggle("open"));
+  el.alert.addEventListener("click", () => {
+    $("alert-title").textContent = `Info trafic · ligne ${current.ln.name}`;
+    const body = $("alert-body");
+    body.replaceChildren(...alerts.map((t) => {
+      const p = document.createElement("p");
+      p.textContent = t;
+      return p;
+    }));
+    body.scrollTop = 0;
+    $("alert-full").showModal();
+  });
   el.backDefault.addEventListener("click", () => show(def));
 
   // ---------- Choix de la station ----------

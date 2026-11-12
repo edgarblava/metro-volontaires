@@ -151,13 +151,41 @@ h1 {
   font: 500 16px/1.35 var(--font);
   text-align: left;
   cursor: pointer;
+  display: block;
+}
+.alert[hidden] { display: none; }
+.alert-text {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.alert.open { display: block; }
-.alert[hidden] { display: none; }
+.alert .more {
+  display: block;
+  margin-top: 6px;
+  color: var(--ambre);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Message complet (plein écran, défilant) */
+.full-head { display: flex; align-items: center; gap: 12px; }
+.full-head h2 { flex: 1; margin: 0; font-size: 24px; }
+.full-head .close { height: 48px; }
+.full-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin-top: 14px;
+  padding-right: 4px;
+  font-size: 19px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.full-body p { margin: 0 0 18px; padding: 14px; border-left: 5px solid var(--rouge); border-radius: 10px; background: #2a1a1f; color: #ffe1dc; }
 
 .foot {
   display: flex;
