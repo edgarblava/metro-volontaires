@@ -1,5 +1,7 @@
 name = "metro-volontaires"
 main = "worker.js"
+workers_dev = true
+preview_urls = false
 compatibility_date = "2026-11-01"
 
 [vars]

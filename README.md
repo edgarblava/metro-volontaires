@@ -27,7 +27,7 @@ Les horaires viennent de l'API officielle **PRIM** d'Île-de-France Mobilités. 
    - Value : la clé PRIM de l'étape 1
    - → **Deploy**
 5. Ouvrir l'adresse du Worker suivie de `/health`, par exemple `https://metro-volontaires.VOTRE-NOM.workers.dev/health`. La page doit afficher `{"ok":true,"key":true}`.
-6. Mettre cette adresse (sans `/health`) dans [`config.js`](config.js), champ `workerUrl`, ou la donner à Claude qui s'en charge.
+6. Mettre cette adresse (sans `/health`) dans [`config.js`](config.js), champ `workerUrl` (déjà fait : `https://metro-volontaires.edgar-272.workers.dev`).
 
 <details>
 <summary>Variante en ligne de commande (wrangler, nécessite Node.js)</summary>
